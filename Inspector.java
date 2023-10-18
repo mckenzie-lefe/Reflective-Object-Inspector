@@ -58,7 +58,8 @@ public class Inspector {
     }
 
     protected String getFieldInfo(Object obj, Field field, Vector objsToInspect) {
-        field.setAccessible(true);
+        
+        
         Object fieldObj = null;
         Class fType = field.getType();
         String str = "\t   " + field.getName() + "\n\t\tType: " + fType.getName();
@@ -68,6 +69,13 @@ public class Inspector {
             str = str + "\n\t\tModifiers: " + Modifier.toString(mod);
         else
             str = str + "\n\t\tModifiers:  NONE";
+
+        try {
+            field.setAccessible(true);
+        } catch (Exception e) {
+            str = str + "\n\t\tWARNING: Unable to make " + field.getName() +" field accessible";
+            return str;
+        }
 
         try {
             fieldObj= field.get(obj);
