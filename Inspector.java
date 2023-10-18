@@ -15,6 +15,8 @@ import java.lang.reflect.*;
 public class Inspector {
 
     public void inspect(Object obj, boolean recursive) {
+        Vector objsToInspect = new Vector();
+
         System.out.println("\nInspecting: " + obj + " (recursive = "+recursive+")");
 
         // handle null objects
@@ -23,19 +25,31 @@ public class Inspector {
             return;
         }
 
-        // handle Array Objects
-        if (obj.getClass().isArray()) {
-            for (int i = 0; i < Array.getLength(obj); i++) {
-                inspect(Array.get(obj, i), recursive);
-            }
-        } 
-
         Class<?> clazz = obj.getClass();
 
+        // handle Array Objects
+        if (clazz.isArray()) {
+            System.out.println(getArrayInfo(obj, clazz, objsToInspect));
+        } 
+        
         System.out.println(getClassName(clazz));
         System.out.println(getSuperClass(clazz));
         System.out.println(getInterfaces(clazz));
+    }
 
+    protected String getArrayInfo(Object obj, Class<?> clazz, Vector objsToInspect) {
+        int length = Array.getLength(obj);
+        String str = "\tLength: " + length + "\n\tComponent Type: " + clazz.getComponentType() + "\n\tArray Values: ";
+        Object el;
+
+        for (int i = 0; i < length; i++) {
+            el =  Array.get(obj, i);
+            str = str + i + "=" + el + ", ";
+            if (el != null && !clazz.isPrimitive())
+                objsToInspect.addElement(el);
+        }
+        
+        return str.substring(0, str.length()-2);
     }
 
     protected String getClassName(Class<?> clazz) {
@@ -48,12 +62,13 @@ public class Inspector {
     }
 
     protected String getInterfaces(Class<?> clazz) {
-        String str = "\tInterfaces:\n";
+        String str = "\tInterfaces:\n\t\t";
         Class<?>[] interfaces = clazz.getInterfaces();
 
         for (Class<?> intf : interfaces) {
-            str = str + "\t\t" + intf.getName();
+            str = str + intf.getName() + "\n\t\t";
         }
-        return str;
+        return str.substring(0, str.length()-3);
     }    
+
 }
