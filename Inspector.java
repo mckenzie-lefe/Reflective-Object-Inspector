@@ -58,8 +58,6 @@ public class Inspector {
     }
 
     protected String getFieldInfo(Object obj, Field field, Vector objsToInspect) {
-        
-        
         Object fieldObj = null;
         Class fType = field.getType();
         String str = "\t   " + field.getName() + "\n\t\tType: " + fType.getName();
@@ -135,17 +133,19 @@ public class Inspector {
     protected String getArrayInfo(Object obj, Class<?> clazz, Vector objsToInspect) {
         int length = Array.getLength(obj);
         String str = "\t\tLength: " + length + "\n\t\tComponent Type: " +  //
-                    clazz.getComponentType() + "\n\t\tArray Values: ";
+                    clazz.getComponentType() + "\n\t\tArray Values: [";
         Object el;
 
+        if (length <= 0) return str + "]";
+
         for (int i = 0; i < length; i++) {
+            if (i % 4 == 0) str = str + "\n\t\t\t";
             el =  Array.get(obj, i);
-            str = str + i + "=" + el + ", ";
+            str = str + el + ", ";
             if (el != null && !clazz.isPrimitive())
                 objsToInspect.addElement(el);
         }
-        
-        return str.substring(0, str.length()-2);
+        return str.substring(0, str.length()-2) + " ]";
     }
 
     protected String getClassName(Class<?> clazz) {
