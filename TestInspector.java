@@ -1,6 +1,7 @@
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.Vector;
 
@@ -48,7 +49,7 @@ public class TestInspector{
         ClassB[] cB;
         try {
             cB = new ClassB[3];
-            assertEquals("\tLength: 3\n\tComponent Type: class ClassB\n\tArray Values: 0=null, 1=null, 2=null", 
+            assertEquals("\t\tLength: 3\n\t\tComponent Type: class ClassB\n\t\tArray Values: 0=null, 1=null, 2=null", 
                 i.getArrayInfo(cB, cB.getClass(), objsToInspect));
             assertTrue(objsToInspect.isEmpty());
             
@@ -65,13 +66,27 @@ public class TestInspector{
             m2 = cD.getClass().getMethod("toString", new Class[] {ClassD.class});
 
             assertEquals("\t   getVal3\n\t\tReturn Type: int\n\t\tModifiers: public\n" + //
-                "\t\tParameter Types:\n\t\tExceptions:", i.getMethodInfo(m1));
+                "\t\tParameter Types:\n\t\tExceptions: ", i.getMethodInfo(m1));
             assertEquals("\t   toString\n\t\tReturn Type: java.lang.String\n\t\tModifiers:" + //
-                " public\n\t\tParameter Types:\n\t\tExceptions:", i.getMethodInfo(m2));
+                " public\n\t\tParameter Types:\n\t\tExceptions: ", i.getMethodInfo(m2));
 
         } catch ( Exception e) {}
-        
-        
+    }
+
+    @Test 
+    public void testGetConstructorInfo() {
+        ClassD cD = new ClassD();
+        Constructor c1, c2;
+
+        try {
+            c1 = cD.getClass().getConstructor(new Class[] {});
+            c2 = cD.getClass().getConstructor(new Class[] {int.class});
+
+            assertEquals("\t   ClassD\n\t\tModifiers: public" + //
+                "\n\t\tParameter Types: ", i.getConstructorInfo(c1));
+            assertEquals("\t   ClassD\n\t\tModifiers: public" + //
+                "\n\t\tParameter Types: int", i.getConstructorInfo(c2));
+
+        } catch ( Exception e) {} 
     }
 }
-//\t   toString\n\t\tReturn Type: java.lang.String\n\t\tModifiers: public\n\t\tParameter Types:\n\t\tExceptions:",
