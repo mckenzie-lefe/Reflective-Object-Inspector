@@ -1,6 +1,7 @@
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+import java.lang.reflect.Method;
 import java.util.Vector;
 
 import org.junit.Before;
@@ -53,4 +54,24 @@ public class TestInspector{
             
         } catch (Exception e) {}   
     }
+
+    @Test 
+    public void testGetMethodInfo() {
+        ClassD cD = new ClassD();
+        Method m1, m2;
+
+        try {
+            m1 = cD.getClass().getMethod("getVal3", new Class[] {ClassD.class});
+            m2 = cD.getClass().getMethod("toString", new Class[] {ClassD.class});
+
+            assertEquals("\t   getVal3\n\t\tReturn Type: int\n\t\tModifiers: public\n" + //
+                "\t\tParameter Types:\n\t\tExceptions:", i.getMethodInfo(m1));
+            assertEquals("\t   toString\n\t\tReturn Type: java.lang.String\n\t\tModifiers:" + //
+                " public\n\t\tParameter Types:\n\t\tExceptions:", i.getMethodInfo(m2));
+
+        } catch ( Exception e) {}
+        
+        
+    }
 }
+//\t   toString\n\t\tReturn Type: java.lang.String\n\t\tModifiers: public\n\t\tParameter Types:\n\t\tExceptions:",

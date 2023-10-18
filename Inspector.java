@@ -35,11 +35,39 @@ public class Inspector {
         System.out.println(getClassName(clazz));
         System.out.println(getSuperClass(clazz));
         System.out.println(getInterfaces(clazz));
+        
+        Method[] methods = clazz.getDeclaredMethods();
+        System.out.println("\tMethods:");;
+        for (Method method : methods) {
+            System.out.println(getMethodInfo(method));
+        }
+    }
+
+    protected String getMethodInfo(Method m) {
+        String str = "\t   " + m.getName() + //
+            "\n\t\tReturn Type: " + m.getReturnType().getName() + //
+            "\n\t\tModifiers: " + Modifier.toString(m.getModifiers()) + //
+            "\n\t\tParameter Types: ";
+
+        Class<?>[] paramTypes = m.getParameterTypes();
+        for (Class<?> pType: paramTypes) {
+            str = str + pType.getName() + ", ";
+        }
+        str.substring(0, str.length()-2);
+
+        str = str + "\n\t\tExceptions: " ;
+        Class<?>[] exceptTypes = m.getExceptionTypes();
+        for (Class<?> eType: exceptTypes) {
+            str = str + eType.getName()+ ", ";
+        }
+
+        return str.substring(0, str.length()-2);
     }
 
     protected String getArrayInfo(Object obj, Class<?> clazz, Vector objsToInspect) {
         int length = Array.getLength(obj);
-        String str = "\tLength: " + length + "\n\tComponent Type: " + clazz.getComponentType() + "\n\tArray Values: ";
+        String str = "\tLength: " + length + "\n\tComponent Type: " +  //
+                    clazz.getComponentType() + "\n\tArray Values: ";
         Object el;
 
         for (int i = 0; i < length; i++) {
