@@ -24,16 +24,16 @@ public class Inspector {
         Vector arrayObjs = new Vector();
         Class<?> clazz = obj.getClass();
 
-        System.out.println("Object:" + obj + " (recursive = "+recursive+")");
+        //System.out.println("Inspecting: " + obj + " (recursive = "+recursive+")");
 
         // handle Array Objects
         if (clazz.isArray()) {
-            System.out.println("\tArray Object:");
+            
             System.out.println(getArrayInfo(obj, clazz, arrayObjs));
 
             Enumeration e = arrayObjs.elements();
             while(e.hasMoreElements()) {
-                Object arrayObj = (Field) e.nextElement();
+                Object arrayObj = e.nextElement();
                 inspect(arrayObj, recursive);
             }
         } else
@@ -43,13 +43,11 @@ public class Inspector {
     protected void inspectObject(Object obj, Class<?> clazz, boolean recursive, int level) {
         Vector fieldObjs = new Vector();
 
-        // handle null objects
+        // handle null class
         if (clazz == null) {
-            System.out.println(" Class is null");
+            System.out.println("Class is null");
             return;
         }
-
-        System.out.println(getClassName(clazz));
 
         try {
             System.out.println(getSuperClass(clazz));
@@ -75,7 +73,7 @@ public class Inspector {
         if (recursive)
             inspectFieldObjects(obj, clazz, fieldObjs);
 
-        inspectInheritance(obj, clazz, level);
+        //inspectInheritance(obj, clazz, level);
     }
             
     protected void inspectInheritance(Object obj, Class<?> clazz, int level) {
@@ -108,6 +106,8 @@ public class Inspector {
             Field f = (Field) e.nextElement();
 
             System.out.println("***Inspecting "+ clazz.getName() + " Field: " + f.getName() + "***");
+            System.out.println("\tDeclaring Class: " + clazz.getName());
+
             try {
                 inspect( f.get(obj) , true);
             } catch(Exception exp) { exp.printStackTrace(); }
@@ -190,8 +190,8 @@ public class Inspector {
 
     protected String getArrayInfo(Object obj, Class<?> clazz, Vector objsToInspect) {
         int length = Array.getLength(obj);
-        String str = "\t\tLength: " + length + "\n\t\tComponent Type: " +  //
-                    clazz.getComponentType() + "\n\t\tArray Values: [";
+        String str = "\tArray:\n\t\tLength: " + length + "\n\t\tComponent Type: " +  //
+                    clazz.getComponentType() + "\n\t\tValues: [";
         Object el;
 
         if (length <= 0) return str + "]";

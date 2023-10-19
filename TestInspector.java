@@ -50,9 +50,9 @@ public class TestInspector{
         ClassB[] cB;
         try {
             cB = new ClassB[3];
-            assertEquals("\t\tLength: 3" + //
+            assertEquals("\tArray:\n\t\tLength: 3" + //
                         "\n\t\tComponent Type: class ClassB" + // 
-                        "\n\t\tArray Values: [" + //
+                        "\n\t\tValues: [" + //
                         "\n\t\t\tnull, null, null ]", 
                 i.getArrayInfo(cB, cB.getClass(), objsToInspect));
             assertTrue(objsToInspect.isEmpty());
@@ -116,12 +116,12 @@ public class TestInspector{
                             "\n\t\tType: int" + //
                             "\n\t\tModifiers: private" + //
                             "\n\t\tValue: 34", i.getFieldInfo(cD, f1, vObjs));
-            assertEquals("\t   vallarray" + //
+            assertEquals("\t   vallarray\n\tArray:" + //
                             "\n\t\tType: [LClassA" + //
                             "\n\t\tModifiers: private" + //
                             "\n\t\tLength: 10" + //
                             "\n\t\tComponent Type: class ClassA" + //
-                            "\n\t\tArray Values: [\n\t\t\tnull, null, null, null," +
+                            "\n\t\tValues: [\n\t\t\tnull, null, null, null," +
                             "\n\t\t\tnull, null, null, null,\n\t\t\tnull,null ]" , i.getFieldInfo(cD, f2, vObjs));
 
         } catch ( Exception e) {} 
