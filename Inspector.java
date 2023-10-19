@@ -15,49 +15,107 @@ import java.lang.reflect.*;
 public class Inspector {
 
     public void inspect(Object obj, boolean recursive) {
-        Vector objsToInspect = new Vector();
-
-        System.out.println("\nInspecting: " + obj + " (recursive = "+recursive+")");
-
         // handle null objects
         if (obj == null) {
             System.out.println(" Object is null");
             return;
         }
 
+        Vector arrayObjs = new Vector();
         Class<?> clazz = obj.getClass();
+
+        System.out.println("Object:" + obj + " (recursive = "+recursive+")");
 
         // handle Array Objects
         if (clazz.isArray()) {
             System.out.println("\tArray Object:");
-            System.out.println(getArrayInfo(obj, clazz, objsToInspect));
-        } 
-        
+            System.out.println(getArrayInfo(obj, clazz, arrayObjs));
+
+            Enumeration e = arrayObjs.elements();
+            while(e.hasMoreElements()) {
+                Object arrayObj = (Field) e.nextElement();
+                inspect(arrayObj, recursive);
+            }
+        } else
+            inspectObject(obj, clazz, recursive);
+    }
+
+    protected void inspectObject(Object obj, Class<?> clazz, boolean recursive) {
+        Vector fieldObjs = new Vector();
+
+        // handle null objects
+        if (clazz == null) {
+            System.out.println(" Class is null");
+            return;
+        }
+
         System.out.println(getClassName(clazz));
-        System.out.println(getSuperClass(clazz));
+
+        try {
+            System.out.println(getSuperClass(clazz));
+        } catch (Exception e) {}
+        
         System.out.println(getInterfaces(clazz));
         
-        Method[] methods = clazz.getDeclaredMethods();
         System.out.println("\tMethods:");
-        for (Method method : methods) {
+        for (Method method : clazz.getDeclaredMethods()) {
             System.out.println(getMethodInfo(method));
         }
 
         System.out.println("\tConstructors:");
-        Constructor<?>[] constructors = clazz.getDeclaredConstructors();
-        for (Constructor<?> constructor : constructors) {
+        for (Constructor<?> constructor : clazz.getDeclaredConstructors()) {
             System.out.println(getConstructorInfo(constructor));
         }
 
         System.out.println("\tFields:");
-        Field[] fields = clazz.getDeclaredFields();
+        for (Field field : clazz.getDeclaredFields()) {
+            System.out.println(getFieldInfo(obj, field, fieldObjs));
+        }
+
+        if (recursive)
+            inspectFieldObjects(obj, clazz, fieldObjs);
+
+        inspectInheritance(obj, clazz);
+    }
+            
+    protected void inspectInheritance(Object obj, Class<?> clazz) {
+        System.out.println("START "+ clazz.getName() + " Inheritance Hierarchy Traversal");
         
-        for (Field field : fields) {
-            System.out.println(getFieldInfo(obj, field, objsToInspect));
+        try {
+            Class<?> superClazz = clazz.getSuperclass();
+            if (superClazz != null) {
+                System.out.println("Inspecting Superclass: " + superClazz.getName());
+                inspectObject(obj, superClazz, false);
+            }
+        } catch(Exception exp) { exp.printStackTrace(); }
+        
+        if (clazz.getInterfaces().length > 0) {
+            for (Class<?> intf : clazz.getInterfaces()) {
+                System.out.println("Inspecting Interface: " + intf.getName());
+                inspectObject(obj, intf, false);
+            }
+        }
+        System.out.println("END of " + clazz.getName() + " Inheritance Hierarchy Traversal");
+    }
+
+    protected void inspectFieldObjects(Object obj, Class clazz, Vector fieldObjs) {
+	
+        if(fieldObjs.size() > 0 )
+            System.out.println("\n---- Inspecting " + clazz.getName() + " Field Objects ----");
+        
+        Enumeration e = fieldObjs.elements();
+        while(e.hasMoreElements()) {
+            Field f = (Field) e.nextElement();
+
+            System.out.println("***Inspecting "+ clazz.getName() + " Field: " + f.getName() + "***");
+            try {
+                inspect( f.get(obj) , true);
+            } catch(Exception exp) { exp.printStackTrace(); }
+            System.out.println("***END " + f.getName() + " field inspection***");
         }
     }
 
-    protected String getFieldInfo(Object obj, Field field, Vector objsToInspect) {
+    protected String getFieldInfo(Object obj, Field field, Vector fieldObjs) {
         Object fieldObj = null;
         Class fType = field.getType();
         String str = "\t   " + field.getName() + "\n\t\tType: " + fType.getName();
@@ -82,14 +140,14 @@ public class Inspector {
         }
 
         if (fType.isArray()) 
-            str = str + "\n" + getArrayInfo(fieldObj, fType, objsToInspect);
+            str = str + "\n" + getArrayInfo(fieldObj, fType, fieldObjs);
         else if (fType.isPrimitive())
             str = str + "\n\t\tValue: " + fieldObj.toString();
         else {
             str = str + "\n\t\tValue: " + fType.getName() + "@" + Integer.toHexString(System.identityHashCode(fieldObj));
             
             if (fieldObj != null && !field.getType().isPrimitive())
-                objsToInspect.addElement(field);
+                fieldObjs.addElement(field);
         }
         return str;
     }
