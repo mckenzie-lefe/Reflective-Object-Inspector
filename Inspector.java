@@ -37,10 +37,10 @@ public class Inspector {
                 inspect(arrayObj, recursive);
             }
         } else
-            inspectObject(obj, clazz, recursive);
+            inspectObject(obj, clazz, recursive, 1);
     }
 
-    protected void inspectObject(Object obj, Class<?> clazz, boolean recursive) {
+    protected void inspectObject(Object obj, Class<?> clazz, boolean recursive, int level) {
         Vector fieldObjs = new Vector();
 
         // handle null objects
@@ -75,27 +75,27 @@ public class Inspector {
         if (recursive)
             inspectFieldObjects(obj, clazz, fieldObjs);
 
-        inspectInheritance(obj, clazz);
+        inspectInheritance(obj, clazz, level);
     }
             
-    protected void inspectInheritance(Object obj, Class<?> clazz) {
-        System.out.println("START "+ clazz.getName() + " Inheritance Hierarchy Traversal");
+    protected void inspectInheritance(Object obj, Class<?> clazz, int level) {
+        pprint("START "+ clazz.getName() + " Inheritance Hierarchy Traversal", level);
         
         try {
             Class<?> superClazz = clazz.getSuperclass();
             if (superClazz != null) {
                 System.out.println("Inspecting Superclass: " + superClazz.getName());
-                inspectObject(obj, superClazz, false);
+                inspectObject(obj, superClazz, false, level+1);
             }
         } catch(Exception exp) { exp.printStackTrace(); }
         
         if (clazz.getInterfaces().length > 0) {
             for (Class<?> intf : clazz.getInterfaces()) {
                 System.out.println("Inspecting Interface: " + intf.getName());
-                inspectObject(obj, intf, false);
+                inspectObject(obj, intf, false, level+1);
             }
         }
-        System.out.println("END of " + clazz.getName() + " Inheritance Hierarchy Traversal");
+        pprint("END of " + clazz.getName() + " Inheritance Hierarchy Traversal", level);
     }
 
     protected void inspectFieldObjects(Object obj, Class clazz, Vector fieldObjs) {
@@ -225,4 +225,18 @@ public class Inspector {
         return str.substring(0, str.length()-3);
     }    
 
+    private void pprint(String msg, int level) {
+        String str = "";
+        for (int i = 0; i < level; i++) {
+            str = str + ("--");
+        }
+        str = str + msg;
+        int pad = 80 - str.length();
+        if (pad > 0) {
+            for (int i = 0; i < pad; i++) {
+                str = str + "-";
+            }
+        }
+        System.out.println(str);
+    }
 }
