@@ -118,6 +118,7 @@ public class TestInspector{
                         "   Type: int\n" + //
                         "   Modifiers: private\n" + //
                         "   Value: 34", i.getFieldInfo(cD, f1, vObjs, 0));
+
             assertEquals("vallarray\n" + //
                         "   Type: [LClassA\n" + //
                         "   Modifiers: private\n" + //
@@ -126,7 +127,37 @@ public class TestInspector{
                         "   Values: [\n      null, null, null, null,\n" +
                         "      null, null, null, null,\n      null,null ]" , i.getFieldInfo(cD, f2, vObjs, 0));
 
+            assertTrue(vObjs.isEmpty());
+
         } catch ( Exception e) {} 
     }
     
+    @Test 
+    public void testAddElementsToFieldObj() {
+        Vector vObjs = new Vector();
+        ClassD cD = new ClassD();
+        Field f1;
+
+        try {
+            f1 = cD.getClass().getField("val");
+
+            assertEquals("val\n" + //
+                        "   Type: class ClassA\n" + //
+                        "   Modifiers: private\n" + //
+                        "   Value: ClassA@6f539caf", i.getFieldInfo(cD, f1, vObjs, 0));
+
+            assertFalse(vObjs.isEmpty());
+
+        } catch ( Exception e) {} 
+    }
+
+    @Test 
+    public void testGetObjectType() {
+        Object cA = new ClassA();
+        Object cArr = new ClassA[12];
+        
+        assertEquals("Object Type: Class", i.getObjectType(cA.getClass(), 0));
+        assertEquals("Object Type: null", i.getObjectType(null, 0));
+        assertEquals("Object Type: Array", i.getObjectType(cArr.getClass(), 0));
+    }
 }
