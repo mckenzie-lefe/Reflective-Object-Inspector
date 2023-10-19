@@ -1,6 +1,5 @@
 import org.junit.Test;
 import static org.junit.Assert.*;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -21,7 +20,7 @@ public class TestInspector{
     public void testGetClassName() {
         ClassA cA = new ClassA();
         
-        assertEquals("\tClass Name: ClassA", i.getClassName(cA.getClass()));
+        assertEquals("Class Name: ClassA", i.getClassName(cA.getClass(), 0));
     }
 
     @Test 
@@ -29,7 +28,7 @@ public class TestInspector{
         ClassB cB;
         try {
             cB = new ClassB();
-            assertEquals("\tSuperclass: ClassC", i.getSuperClass(cB.getClass()));
+            assertEquals("   Superclass: ClassC", i.getSuperClass(cB.getClass(), 1));
 
         } catch (Exception e) {}    
     }
@@ -39,7 +38,7 @@ public class TestInspector{
         ClassB cB;
         try {
             cB = new ClassB();
-            assertEquals("\tInterfaces:\n\t\tjava.lang.Runnable", i.getInterfaces(cB.getClass()));
+            assertEquals("Interfaces:\n   java.lang.Runnable", i.getInterfaces(cB.getClass(), 0));
             
         } catch (Exception e) {}    
     }
@@ -48,13 +47,15 @@ public class TestInspector{
     public void testGetArrayInfo() {
         Vector objsToInspect = new Vector();
         ClassB[] cB;
+
         try {
             cB = new ClassB[3];
-            assertEquals("\tArray:\n\t\tLength: 3" + //
-                        "\n\t\tComponent Type: class ClassB" + // 
-                        "\n\t\tValues: [" + //
-                        "\n\t\t\tnull, null, null ]", 
-                i.getArrayInfo(cB, cB.getClass(), objsToInspect));
+            assertEquals("Length: 3\n" + //
+                        "Component Type: class ClassB\n" + // 
+                        "Values: [\n" + //
+                        "   null, null, null ]", 
+                i.getArrayInfo(cB, cB.getClass(), 0));
+
             assertTrue(objsToInspect.isEmpty());
             
         } catch (Exception e) {}   
@@ -69,16 +70,17 @@ public class TestInspector{
             m1 = cD.getClass().getMethod("getVal3", new Class[] {ClassD.class});
             m2 = cD.getClass().getMethod("toString", new Class[] {ClassD.class});
 
-            assertEquals("\t   getVal3" + //
-                        "\n\t\tReturn Type: int" + //
-                        "\n\t\tModifiers: public\n" + //
-                        "\t\tParameter Types:\n\t\t" + //
-                        "Exceptions: ", i.getMethodInfo(m1));
-            assertEquals("\t   toString" + // 
-                        "\n\t\tReturn Type: java.lang.String" + //
-                        "\n\t\tModifiers: public" + //
-                        "\n\t\tParameter Types:" + //
-                        "\n\t\tExceptions: ", i.getMethodInfo(m2));
+            assertEquals("getVal3\n" + //
+                        "   Return Type: int\n" + //
+                        "   Modifiers: public\n" + //
+                        "   Parameter Types:\n" + //
+                        "   Exceptions: ", i.getMethodInfo(m1, 0));
+
+            assertEquals("toString\n" + // 
+                        "   Return Type: java.lang.String\n" + //
+                        "   Modifiers: public\n" + //
+                        "   Parameter Types:\n" + //
+                        "   Exceptions: ", i.getMethodInfo(m2, 0));
 
         } catch ( Exception e) {}
     }
@@ -92,12 +94,12 @@ public class TestInspector{
             c1 = cD.getClass().getConstructor(new Class[] {});
             c2 = cD.getClass().getConstructor(new Class[] {int.class});
 
-            assertEquals("\t   ClassD" + //
-                        "\n\t\tModifiers: public" + //
-                        "\n\t\tParameter Types: ", i.getConstructorInfo(c1));
-            assertEquals("\t   ClassD" + //
-                        "\n\t\tModifiers: public" + //
-                        "\n\t\tParameter Types: int", i.getConstructorInfo(c2));
+            assertEquals("ClassD\n" + //
+                        "   Modifiers: public\n" + //
+                        "   Parameter Types: ", i.getConstructorInfo(c1, 0));
+            assertEquals("ClassD\n" + //
+                        "   Modifiers: public\n" + //
+                        "   Parameter Types: int", i.getConstructorInfo(c2, 0));
 
         } catch ( Exception e) {} 
     }
@@ -112,30 +114,19 @@ public class TestInspector{
             f1 = cD.getClass().getField("val3");
             f2 = cD.getClass().getField("vallarray");
 
-            assertEquals("\t   val3" + //
-                            "\n\t\tType: int" + //
-                            "\n\t\tModifiers: private" + //
-                            "\n\t\tValue: 34", i.getFieldInfo(cD, f1, vObjs));
-            assertEquals("\t   vallarray\n\tArray:" + //
-                            "\n\t\tType: [LClassA" + //
-                            "\n\t\tModifiers: private" + //
-                            "\n\t\tLength: 10" + //
-                            "\n\t\tComponent Type: class ClassA" + //
-                            "\n\t\tValues: [\n\t\t\tnull, null, null, null," +
-                            "\n\t\t\tnull, null, null, null,\n\t\t\tnull,null ]" , i.getFieldInfo(cD, f2, vObjs));
+            assertEquals("val3\n" + //
+                        "   Type: int\n" + //
+                        "   Modifiers: private\n" + //
+                        "   Value: 34", i.getFieldInfo(cD, f1, vObjs, 0));
+            assertEquals("vallarray\n" + //
+                        "   Type: [LClassA\n" + //
+                        "   Modifiers: private\n" + //
+                        "   Length: 10\n" + //
+                        "   Component Type: class ClassA\n" + //
+                        "   Values: [\n      null, null, null, null,\n" +
+                        "      null, null, null, null,\n      null,null ]" , i.getFieldInfo(cD, f2, vObjs, 0));
 
         } catch ( Exception e) {} 
     }
+    
 }
-/*
- val3
-                Type: int
-                Modifiers: private
-                Value: 34
-           vallarray
-                Type: [LClassA;
-                Modifiers: private
-                Length: 10
-                Component Type: class ClassA
-                Array Values: 0=null, 1=null, 2=null, 3=null, 4=null, 5=null, 6=null,
- */

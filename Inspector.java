@@ -15,29 +15,14 @@ import java.lang.reflect.*;
 public class Inspector {
 
     public void inspect(Object obj, boolean recursive) {
-        // handle null objects
+        // handle null object
         if (obj == null) {
             System.out.println(" Object is null");
             return;
         }
 
-        Vector arrayObjs = new Vector();
-        Class<?> clazz = obj.getClass();
-
-        //System.out.println("Inspecting: " + obj + " (recursive = "+recursive+")");
-
-        // handle Array Objects
-        if (clazz.isArray()) {
-            
-            System.out.println(getArrayInfo(obj, clazz, arrayObjs));
-
-            Enumeration e = arrayObjs.elements();
-            while(e.hasMoreElements()) {
-                Object arrayObj = e.nextElement();
-                inspect(arrayObj, recursive);
-            }
-        } else
-            inspectObject(obj, clazz, recursive, 1);
+        System.out.println("Inspecting: " + obj + " (recursive = "+recursive+")");
+        inspectObject(obj, obj.getClass(), recursive, 1);
     }
 
     protected void inspectObject(Object obj, Class<?> clazz, boolean recursive, int level) {
@@ -49,87 +34,115 @@ public class Inspector {
             return;
         }
 
+        System.out.println(getObjectType(clazz, level));
+
+        // handle Array Objects
+        if (clazz.isArray()) {
+            System.out.println(getArrayInfo(obj, clazz, level));
+
+            if (recursive)
+                inspectArrayObjects(obj, clazz, level);
+        }
+        
+        System.out.println(getClassName(clazz, level));
+
         try {
-            System.out.println(getSuperClass(clazz));
+            System.out.println(getSuperClass(clazz, level));
         } catch (Exception e) {}
         
-        System.out.println(getInterfaces(clazz));
+        System.out.println(getInterfaces(clazz, level));
         
-        System.out.println("\tMethods:");
+        System.out.println(indent(level) + "Methods:");
         for (Method method : clazz.getDeclaredMethods()) {
-            System.out.println(getMethodInfo(method));
+            System.out.println(getMethodInfo(method, level+1));
         }
 
-        System.out.println("\tConstructors:");
+        System.out.println(indent(level) + "Constructors:");
         for (Constructor<?> constructor : clazz.getDeclaredConstructors()) {
-            System.out.println(getConstructorInfo(constructor));
+            System.out.println(getConstructorInfo(constructor, level+1));
         }
 
-        System.out.println("\tFields:");
+        System.out.println(indent(level) + "Fields:");
         for (Field field : clazz.getDeclaredFields()) {
-            System.out.println(getFieldInfo(obj, field, fieldObjs));
+            System.out.println(getFieldInfo(obj, field, fieldObjs, level+1));
         }
+
+        System.out.println();
 
         if (recursive)
-            inspectFieldObjects(obj, clazz, fieldObjs);
+            inspectFieldObjects(obj, clazz, fieldObjs, level);
 
-        //inspectInheritance(obj, clazz, level);
+        inspectInheritance(obj, clazz, level);
     }
-            
+           
+    private void inspectArrayObjects(Object obj, Class<?> clazz, int level) {
+        for (int i = 0; i < Array.getLength(obj); i++) {
+            Object el =  Array.get(obj, i);
+            if (el != null && !clazz.isPrimitive()) {
+                System.out.println(indent(level)+ "Inspecting Array Object Value: " +el);
+                inspectObject(el, el.getClass(), true, level+1);
+            }
+        }
+    }
+
     protected void inspectInheritance(Object obj, Class<?> clazz, int level) {
-        pprint("START "+ clazz.getName() + " Inheritance Hierarchy Traversal", level);
+        pprint(indent(level)+ "START " +clazz.getName()+ " Inheritance Hierarchy Traversal", "-");
         
         try {
             Class<?> superClazz = clazz.getSuperclass();
             if (superClazz != null) {
-                System.out.println("Inspecting Superclass: " + superClazz.getName());
-                inspectObject(obj, superClazz, false, level+1);
+                System.out.println(indent(level+1)+ "Inspecting Superclass: " +superClazz.getName());
+                inspectObject(obj, superClazz, false, level+2);
             }
         } catch(Exception exp) { exp.printStackTrace(); }
         
         if (clazz.getInterfaces().length > 0) {
             for (Class<?> intf : clazz.getInterfaces()) {
-                System.out.println("Inspecting Interface: " + intf.getName());
-                inspectObject(obj, intf, false, level+1);
+                System.out.println(indent(level+1) +"Inspecting Interface: " + intf.getName());
+                inspectObject(obj, intf, false, level+2);
             }
         }
-        pprint("END of " + clazz.getName() + " Inheritance Hierarchy Traversal", level);
+        pprint(indent(level)+ "END " +clazz.getName()+ " Inheritance Hierarchy Traversal", "-");
+        System.out.println();
     }
 
-    protected void inspectFieldObjects(Object obj, Class clazz, Vector fieldObjs) {
-	
-        if(fieldObjs.size() > 0 )
-            System.out.println("\n---- Inspecting " + clazz.getName() + " Field Objects ----");
+    protected void inspectFieldObjects(Object obj, Class clazz, Vector fieldObjs, int level) {
+        if(fieldObjs.size() <= 0 )
+            return;
+        
+        pprint(indent(level)+ "START Inspecting " +clazz.getName()+ " Field Objects", "*");
         
         Enumeration e = fieldObjs.elements();
         while(e.hasMoreElements()) {
             Field f = (Field) e.nextElement();
 
-            System.out.println("***Inspecting "+ clazz.getName() + " Field: " + f.getName() + "***");
-            System.out.println("\tDeclaring Class: " + clazz.getName());
+            System.out.println(indent(level)+ "---Inspecting " +clazz.getName()+ "'s Field: " +f.getName());
+            System.out.println(indent(level+2)+ "Declaring Class: " +clazz.getName());
 
             try {
-                inspect( f.get(obj) , true);
+                Object fObj = f.get(obj);
+                inspectObject(fObj , fObj.getClass(), true, level+2);
+
             } catch(Exception exp) { exp.printStackTrace(); }
-            System.out.println("***END " + f.getName() + " field inspection***");
+
+            System.out.println(indent(level)+ "---END '" +f.getName()+ "' field inspection\n");
         }
+
+        pprint(indent(level)+ "END Inspecting " +clazz.getName()+ " Field Objects", "*");
+        System.out.println();
     }
 
-    protected String getFieldInfo(Object obj, Field field, Vector fieldObjs) {
+    protected String getFieldInfo(Object obj, Field field, Vector fieldObjs, int level) {
         Object fieldObj = null;
-        Class fType = field.getType();
-        String str = "\t   " + field.getName() + "\n\t\tType: " + fType.getName();
-        
-        int mod = field.getModifiers();
-        if(mod > 0)
-            str = str + "\n\t\tModifiers: " + Modifier.toString(mod);
-        else
-            str = str + "\n\t\tModifiers:  NONE";
+        Class<?> fType = field.getType();
+        String str = indent(level)+field.getName()+ "\n" + //
+                    indent(level+1)+ "Type: " +fType+ "\n" + //
+                    indent(level+1)+ "Modifiers: " +Modifier.toString(field.getModifiers());
 
         try {
             field.setAccessible(true);
         } catch (Exception e) {
-            str = str + "\n\t\tWARNING: Unable to make " + field.getName() +" field accessible";
+            str = str+ "\n" +indent(level+1)+ "WARNING: Unable to make " +field.getName()+" field accessible";
             return str;
         }
 
@@ -140,103 +153,117 @@ public class Inspector {
         }
 
         if (fType.isArray()) 
-            str = str + "\n" + getArrayInfo(fieldObj, fType, fieldObjs);
+            str = str+ "\n" +getArrayInfo(fieldObj, fType, level+1);
         else if (fType.isPrimitive())
-            str = str + "\n\t\tValue: " + fieldObj.toString();
+            str = str+ "\n" +indent(level+1)+ "Value: " +fieldObj.toString();
         else {
-            str = str + "\n\t\tValue: " + fType.getName() + "@" + Integer.toHexString(System.identityHashCode(fieldObj));
+            str = str+ "\n" +indent(level+1)+ "Value: " +fType.getName()+ //
+                "@" +Integer.toHexString(System.identityHashCode(fieldObj));
             
-            if (fieldObj != null && !field.getType().isPrimitive())
+            if (fieldObj != null && !fType.isPrimitive())
                 fieldObjs.addElement(field);
         }
         return str;
     }
 
-    protected String getConstructorInfo(Constructor<?> c) {
-        String str = "\t   " + c.getName() + "\n\t\t" + //
-            "Modifiers: " + Modifier.toString(c.getModifiers()) + //
-            "\n\t\tParameter Types: ";
+    protected String getConstructorInfo(Constructor<?> c, int level) {
+        String str = indent(level)+c.getName()+ "\n" +indent(level+1)+ //
+            "Modifiers: " +Modifier.toString(c.getModifiers())+ //
+            "\n" +indent(level+1)+ "Parameter Types: ";
 
         Class<?>[] paramTypes = c.getParameterTypes();
         for (Class<?> pType: paramTypes) {
-            str = str + pType.getName() + ", ";
+            str = str +pType.getName()+ ", ";
         }
+
         if (paramTypes.length > 0) str = str.substring(0, str.length()-2);
 
         return str;
     }
 
-    protected String getMethodInfo(Method m) {
-        String str = "\t   " + m.getName() + //
-            "\n\t\tReturn Type: " + m.getReturnType().getName() + //
-            "\n\t\tModifiers: " + Modifier.toString(m.getModifiers()) + //
-            "\n\t\tParameter Types: ";
+    protected String getMethodInfo(Method m, int level) {
+        String str = indent(level)+m.getName()+ "\n" +indent(level+1) + //
+            "Return Type: "+m.getReturnType().getName()+ "\n" +indent(level+1)+ //
+            "Modifiers: " +Modifier.toString(m.getModifiers())+ "\n" + //
+            indent(level+1)+ "Parameter Types: ";
 
         Class<?>[] paramTypes = m.getParameterTypes();
         for (Class<?> pType: paramTypes) {
-            str = str + pType.getName() + ", ";
+            str = str +pType.getName()+ ", ";
         }
         if (paramTypes.length > 0) str = str.substring(0, str.length()-2);
 
-        str = str + "\n\t\tExceptions: ";
+        str = str+ "\n" +indent(level+1)+ "Exceptions: ";
         Class<?>[] exceptTypes = m.getExceptionTypes();
         for (Class<?> eType: exceptTypes) {
-            str = str + eType.getName()+ ", ";
+            str = str +eType.getName()+ ", ";
         }
         if (exceptTypes.length > 0) str = str.substring(0, str.length()-2);
         
         return str;
     }
 
-    protected String getArrayInfo(Object obj, Class<?> clazz, Vector objsToInspect) {
+    protected String getArrayInfo(Object obj, Class<?> clazz, int level) {
         int length = Array.getLength(obj);
-        String str = "\tArray:\n\t\tLength: " + length + "\n\t\tComponent Type: " +  //
-                    clazz.getComponentType() + "\n\t\tValues: [";
-        Object el;
+        String str = indent(level)+ "Length: " +length+ "\n" + //
+                    indent(level)+ "Component Type: " +clazz.getComponentType()+ //
+                    "\n"+indent(level)+ "Values: [";
 
         if (length <= 0) return str + "]";
 
         for (int i = 0; i < length; i++) {
-            if (i % 4 == 0) str = str + "\n\t\t\t";
-            el =  Array.get(obj, i);
-            str = str + el + ", ";
-            if (el != null && !clazz.isPrimitive())
-                objsToInspect.addElement(el);
+            if (i % 4 == 0) str = str + "\n" +indent(level+1);
+            str = str +Array.get(obj, i)+ ", ";
         }
         return str.substring(0, str.length()-2) + " ]";
     }
 
-    protected String getClassName(Class<?> clazz) {
-        return "\tClass Name: " + clazz.getName();
+    protected String getClassName(Class<?> clazz, int level) {
+        return indent(level)+ "Class Name: " +clazz.getName();
     }
 
-    protected String getSuperClass(Class<?> clazz) {
-        Class<?> superClazz = clazz.getSuperclass();
-        return "\tSuperclass: " + superClazz.getName();
+    protected String getSuperClass(Class<?> clazz, int level) {
+        return indent(level)+ "Superclass: " +clazz.getSuperclass().getName();
     }
+    
+    protected String getInterfaces(Class<?> clazz, int level) {
+        String str = indent(level)+ "Interfaces:\n";
 
-    protected String getInterfaces(Class<?> clazz) {
-        String str = "\tInterfaces:\n\t\t";
-        Class<?>[] interfaces = clazz.getInterfaces();
-
-        for (Class<?> intf : interfaces) {
-            str = str + intf.getName() + "\n\t\t";
+        for (Class<?> intf : clazz.getInterfaces()) {
+            str = str +indent(level+1)+ intf.getName() + "\n";
         }
-        return str.substring(0, str.length()-3);
+        
+        return str.substring(0, str.length()-1);
     }    
 
-    private void pprint(String msg, int level) {
-        String str = "";
-        for (int i = 0; i < level; i++) {
-            str = str + ("--");
-        }
-        str = str + msg;
-        int pad = 80 - str.length();
+    protected String getObjectType(Class<?> clazz, int level) {
+        if (clazz == null) 
+            return indent(level) + "Object Type: null";
+        else if (clazz.isArray()) 
+            return indent(level) + "Object Type: Array";
+        else if (clazz.isInterface()) 
+            return indent(level) + "Object Type: Interface";
+        else if (clazz.isPrimitive()) 
+            return indent(level) + "Object Type: Primitive";
+        else 
+            return indent(level) + "Object Type: Class";
+    }
+
+    private void pprint(String msg, String fill) {
+        int pad = 80 - msg.length();
         if (pad > 0) {
             for (int i = 0; i < pad; i++) {
-                str = str + "-";
+                msg = msg + fill;
             }
         }
-        System.out.println(str);
+        System.out.println(msg);
+    }
+
+    private String indent(int level) {
+        String str = "";
+        for (int i = 0; i < level; i++) {
+            str = str + ("   ");
+        }
+        return str;
     }
 }
