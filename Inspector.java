@@ -159,14 +159,17 @@ public class Inspector {
         if(fieldObjs.size() <= 0 )
             return;
         
-        pprint(indent(level)+ "START Inspecting " +clazz.getName()+ " Field Objects", "*");
+        pprint(indent(level)+ "START Inspecting " +clazz.getName()+ //
+                        " Field Objects", "*");
         
         Enumeration e = fieldObjs.elements();
         while(e.hasMoreElements()) {
             Field f = (Field) e.nextElement();
 
-            System.out.println(indent(level)+ "---Inspecting " +clazz.getName()+ "'s Field: " +f.getName());
-            System.out.println(indent(level+2)+ "Declaring Class: " +clazz.getName());
+            System.out.println(indent(level)+ "---Inspecting " + //
+                                clazz.getName()+"'s Field: " +f.getName());
+            System.out.println(indent(level+2)+ "Declaring Class: " +//
+                                clazz.getName());
 
             try {
                 Object fObj = f.get(obj);
@@ -174,10 +177,12 @@ public class Inspector {
 
             } catch(Exception exp) { exp.printStackTrace(); }
 
-            System.out.println(indent(level)+ "---END '" +f.getName()+ "' field inspection\n");
+            System.out.println(indent(level)+ "---END '" +f.getName()+ //
+                                "' field inspection\n");
         }
 
-        pprint(indent(level)+ "END Inspecting " +clazz.getName()+ " Field Objects", "*");
+        pprint(indent(level)+ "END Inspecting " +clazz.getName()+ //
+                " Field Objects", "*");
         System.out.println();
     }
 
@@ -194,12 +199,14 @@ public class Inspector {
      * @return          {@code String} containing information of {@code field} type, 
      *                  modifiers and value.
      */
-    protected String getFieldInfo(Object obj, Field field, Vector fieldObjs, int level) {
+    protected String getFieldInfo(Object obj, Field field, 
+                                    Vector fieldObjs, int level) {
         Object fieldObj = null;
         Class<?> fType = field.getType();
         String str = indent(level)+field.getName()+ "\n" + //
                     indent(level+1)+ "Type: " +fType+ "\n" + //
-                    indent(level+1)+ "Modifiers: " +Modifier.toString(field.getModifiers());
+                    indent(level+1)+ "Modifiers: " + //
+                    Modifier.toString(field.getModifiers());
 
         try {
             field.setAccessible(true);
@@ -234,10 +241,11 @@ public class Inspector {
      * Will add {@code field} to {@code fieldObjs} if it is a class or an array 
      * object.
      * 
-     * @param c       
+     * @param c     constructor to introspect  
      * @param level min number of indents to start a new string with
      * 
-     * @return          {@code String} containing information of 
+     * @return          {@code String} containing information of {@code c} 
+     *                  name, modifiers and parameter types.
      */
     protected String getConstructorInfo(Constructor<?> c, int level) {
         String str = indent(level)+c.getName()+ "\n" +indent(level+1)+ //
@@ -255,12 +263,14 @@ public class Inspector {
     }
 
     /**
-     * Called by {@code inspectObject} method to introspect the given 
+     * Called by {@code inspectObject} method to introspect the given method.
      * 
-     * @param m       
+     * @param m         method to introspect
      * @param level     min number of indents to start a new string with
      * 
-     * @return          {@code String} containing information of 
+     * @return          {@code String} containing information of {@code m} 
+     *                  name, return type, modifiers, parameter types and 
+     *                  exceptions thrown.
      */
     protected String getMethodInfo(Method m, int level) {
         String str = indent(level)+m.getName()+ "\n" +indent(level+1) + //
@@ -288,16 +298,17 @@ public class Inspector {
     /**
      * Called by {@code inspectObject} method to introspect the given 
      * 
-     * @param obj       the object containing {@code clazz} 
-     * @param clazz     
+     * @param obj       the object containing {@code arr} 
+     * @param arr       array object to introspect
      * @param level     min number of indents to start a new string with
      * 
-     * @return          {@code String} containing information of 
+     * @return          {@code String} containing information of {@code arr}
+     *                  length, component type and values.
      */
-    protected String getArrayInfo(Object obj, Class<?> clazz, int level) {
+    protected String getArrayInfo(Object obj, Class<?> arr, int level) {
         int length = Array.getLength(obj);
         String str = indent(level)+ "Length: " +length+ "\n" + //
-                    indent(level)+ "Component Type: " +clazz.getComponentType()+ //
+                    indent(level)+ "Component Type: " +arr.getComponentType()+ //
                     "\n"+indent(level)+ "Values: [";
 
         if (length <= 0) return str + "]";
@@ -311,36 +322,40 @@ public class Inspector {
     }
 
     /**
-     * Called by {@code inspectObject} method to 
+     * Called by {@code inspectObject} method to get the name of the given
+     * class object.
+     * Note: main purpose to have extracted this method is for testing
      * 
-     * @param clazz       
+     * @param clazz     class whose name to find
      * @param level     min number of indents to start a new string with
      * 
-     * @return          {@code String} containing information 
+     * @return          {@code String} containing class name
      */
     protected String getClassName(Class<?> clazz, int level) {
         return indent(level)+ "Class Name: " +clazz.getName();
     }
 
     /**
-     * Called by {@code inspectObject} method to 
+     * Called by {@code inspectObject} method to get {@code clazz} superclass.
+     * Note: main purpose to have extracted this method is for testing
      * 
-     * @param clazz       
+     * @param clazz     class whose superclass to find
      * @param level     min number of indents to start a new string with
      * 
-     * @return          {@code String} containing information 
+     * @return          {@code String} containing superclass
      */
     protected String getSuperClass(Class<?> clazz, int level) {
         return indent(level)+ "Superclass: " +clazz.getSuperclass().getName();
     }
     
     /**
-     * Called by {@code inspectObject} method to introspect the given 
+     * Called by {@code inspectObject} method to get the interfaces of 
+     * {@code clazz}
      * 
-     * @param clazz       
+     * @param clazz     class whose interfaces to find
      * @param level     min number of indents to start a new string with
      * 
-     * @return          {@code String} containing 
+     * @return          {@code String} containing interfaces
      */
     protected String getInterfaces(Class<?> clazz, int level) {
         String str = indent(level)+ "Interfaces:\n";
@@ -353,12 +368,12 @@ public class Inspector {
     }    
 
     /**
-     * Called by {@code inspectObject} method to 
+     * Called by {@code inspectObject} method to get an objects type
      * 
-     * @param clazz       
+     * @param clazz     class whose object type to find
      * @param level     min number of indents to start a new string with
      * 
-     * @return          {@code String} containing 
+     * @return          {@code String} containing object type
      */
     protected String getObjectType(Class<?> clazz, int level) {
         if (clazz == null) 
@@ -374,10 +389,11 @@ public class Inspector {
     }
 
     /**
+     * Used to pretty print openning and closing headers for class and 
+     * object inspections
      * 
-     * 
-     * @param msg        
-     * @param fill     
+     * @param msg   message to pretty print     
+     * @param fill  character to fill empty space after msg up to column 80     
      */
     private void pprint(String msg, String fill) {
         int pad = 80 - msg.length();
@@ -390,10 +406,10 @@ public class Inspector {
     }
 
     /**
-     * 
+     * Used to create string of spaces used to indent a new line
      * @param level     min number of indents to start a new string with
      * 
-     * @return          {@code String} containing 
+     * @return          {@code String} of spaces correponding to {@code level}
      */
     private String indent(int level) {
         String str = "";
