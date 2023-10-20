@@ -96,10 +96,11 @@ public class TestInspector{
 
             assertEquals("ClassD\n" + //
                         "   Modifiers: public\n" + //
-                        "   Parameter Types: ", i.getConstructorInfo(c1, 0));
+                        "   Parameter Types:", i.getConstructorInfo(c1, 0));
             assertEquals("ClassD\n" + //
                         "   Modifiers: public\n" + //
-                        "   Parameter Types: int", i.getConstructorInfo(c2, 0));
+                        "   Parameter Types:\n" + //
+                        "      int", i.getConstructorInfo(c2, 0));
 
         } catch ( Exception e) {} 
     }

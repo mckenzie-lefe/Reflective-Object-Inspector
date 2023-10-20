@@ -250,16 +250,13 @@ public class Inspector {
     protected String getConstructorInfo(Constructor<?> c, int level) {
         String str = indent(level)+c.getName()+ "\n" +indent(level+1)+ //
             "Modifiers: " +Modifier.toString(c.getModifiers())+ //
-            "\n" +indent(level+1)+ "Parameter Types: ";
+            "\n" +indent(level+1)+ "Parameter Types:\n";
 
-        Class<?>[] paramTypes = c.getParameterTypes();
-        for (Class<?> pType: paramTypes) {
-            str = str +pType.getName()+ ", ";
+        for (Class<?> pType: c.getParameterTypes()) {
+            str = str +indent(level+2)+ pType.getName()+ "\n";
         }
 
-        if (paramTypes.length > 0) str = str.substring(0, str.length()-2);
-
-        return str;
+        return str.substring(0, str.length()-1);
     }
 
     /**
@@ -276,23 +273,19 @@ public class Inspector {
         String str = indent(level)+m.getName()+ "\n" +indent(level+1) + //
             "Return Type: "+m.getReturnType().getName()+ "\n" +indent(level+1)+ //
             "Modifiers: " +Modifier.toString(m.getModifiers())+ "\n" + //
-            indent(level+1)+ "Parameter Types: ";
+            indent(level+1)+ "Parameter Types:\n";
 
-        Class<?>[] paramTypes = m.getParameterTypes();
-        for (Class<?> pType: paramTypes) {
-            str = str +pType.getName()+ ", ";
+        for (Class<?> pType: m.getParameterTypes()) {
+            str = str +indent(level+2)+ pType.getName()+ "\n";
         }
-        if (paramTypes.length > 0) str = str.substring(0, str.length()-2);
 
-        str = str+ "\n" +indent(level+1)+ "Exceptions: ";
-        Class<?>[] exceptTypes = m.getExceptionTypes();
-        for (Class<?> eType: exceptTypes) {
-            str = str +eType.getName()+ ", ";
+        str = str +indent(level+1)+ "Exceptions:\n";
+
+        for (Class<?> eType: m.getExceptionTypes()) {
+            str = str +indent(level+2)+ eType.getName()+ "\n";
         }
-    
-        if (exceptTypes.length > 0) str = str.substring(0, str.length()-2);
         
-        return str;
+        return str.substring(0, str.length()-1);
     }
 
     /**
